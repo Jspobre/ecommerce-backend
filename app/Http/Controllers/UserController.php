@@ -159,4 +159,107 @@ class UserController extends Controller
 
 
   }
+
+
+  public function logout(Request $request){
+
+    // $validateData = $request->validate([
+    //   'email' => 'required',
+    //   'password' => 'required'
+    // ]);
+
+    // if(!Auth::attempt($validateData)){
+    //   return response()->json([
+    //     'Code' => 404,
+    //     'Message' => 'User not found'
+    //   ]);
+
+    // }
+
+    $user = Auth::user();
+    if(!$user){
+        return response()->json([
+          'Message' => 'Not a user'
+        ]);
+    }
+
+    $token = $user->currentAccessToken()->delete();
+
+    return response()->json([
+      'Code' => 200,
+      'Message' => 'Logout Successfully',
+      'Token' => $token ? "Token revoked" : "Token not revoked"
+    ]);
+
+  }
+
+
+  public function insertUser(Request $request){
+ 
+    try {
+
+      $validateData = $request->validate([
+          'first_name' => 'required|string|max:255',
+          'last_name' => 'required|string|max:255',
+          'email' => 'required|string|unique:users|max:255',
+          'password' => 'required|min:8'
+      ]);
+
+      $user = User::create([
+        'first_name' => $validateData['first_name'],
+        'last_name' => $validateData['last_name'],
+        'email' => $validateData['email'],
+        'password' => Hash::make($validateData['password'])
+     ]);
+
+     return response()->json([
+      'Code' => 200,
+      'Message' => 'Success',
+      'Data' => $user
+     ]);
+    } catch (\Throwable $th) {
+      return response()->json([
+        'error' => $th
+      ]); 
+    }
+     
+  }
+
+
+  public function adminLogin(Request $request){
+
+    try {
+      $validateData = $request->validate([
+        'email' => ['required', 'email'],
+        'password' => ['required'],
+      ]);
+
+      if(Auth::attempt($validateData, true)){
+
+        $user = Auth::user();
+
+        $token = $request->user()->createToken('my_token', ['get-users,insert-user,update-user,delete-user'])->plainTextToken;
+        
+        return response()->json([
+          'Code' => 200,
+          'Message' => 'User authenticated!',
+          'User ID' => $user,
+          'Token' => $token
+        ]);
+      } else{
+        return response()->json([
+            'Code' => 404,
+            'Message' => 'User not found! Please try again',
+        ]);
+      }
+    } catch (\Throwable $th) {
+      return response()->json([
+        'error' => $th->getMessage()
+      ]); 
+    }
+  }
+
+
+
+  
 }
