@@ -23,7 +23,7 @@ Route::middleware(['auth:sanctum', 'ability:insert-user,update-user,delete-user'
 
 Route::get('/all-users', [UserController::class, 'index']);
 Route::get('/fetch-user/{user_id}', [UserController::class, 'fetchUser']);
-Route::post('/insert', [UserController::class, 'insertData']);
+Route::post('/signin', [UserController::class, 'signIn']);
 
 
 Route::post('/login', [UserController::class, 'login']);

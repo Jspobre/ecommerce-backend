@@ -17,14 +17,14 @@ class UserController extends Controller
   }
 
 
-  public function insertData(Request $request){
+  public function signIn(Request $request){
  
     try {
 
       $validateData = $request->validate([
           'first_name' => 'required|string|max:255',
           'last_name' => 'required|string|max:255',
-          'email' => 'required|string|unique:users|max:255',
+          'email' => 'required|string|email|unique:users|max:255',
           'password' => 'required|min:8'
       ]);
 
@@ -48,35 +48,30 @@ class UserController extends Controller
      
   }
 
-  public function login(Request $request){
+  public function login(Request $request) { 
 
     try {
       $validateData = $request->validate([
-        'email' => ['required', 'email'],
+        'email' => ['required', 'email', 'string', 'max:255'],
         'password' => ['required'],
       ]);
 
-      if(Auth::attempt($validateData, true)){
+      if(Auth::attempt($validateData)){
 
         $user = Auth::user();
 
         $token = $request->user()->createToken('my_token')->plainTextToken;
         
         return response()->json([
-          'Code' => 200,
-          'Message' => 'User authenticated!',
+          'code' => 200,
+          'message' => 'User authenticated!',
           'User ID' => $user,
           'Token' => $token
         ]);
-      } else{
-        return response()->json([
-            'Code' => 404,
-            'Message' => 'User not found! Please try again',
-        ]);
-      }
+      } 
     } catch (\Throwable $th) {
       return response()->json([
-        'error' => $th->getMessage()
+        'error' => 'User not found! please try again'
       ]); 
     }
   }
@@ -205,6 +200,14 @@ class UserController extends Controller
           'password' => 'required|min:8'
       ]);
 
+      if(!$validateData){
+        return response()->json(
+          [
+          'error' => 'error bro'
+          ]
+        );
+      }
+
       $user = User::create([
         'first_name' => $validateData['first_name'],
         'last_name' => $validateData['last_name'],
@@ -219,10 +222,22 @@ class UserController extends Controller
      ]);
     } catch (\Throwable $th) {
       return response()->json([
-        'error' => $th
+        'error' => 'something error'
       ]); 
     }
      
+  }
+
+  public function profile (string $user_id){
+
+      $user = User::find($user_id);
+
+      return response()->json([
+        'code' => 200,
+        'message' => 'success',
+        'data' => $user
+      ]);
+
   }
 
 
